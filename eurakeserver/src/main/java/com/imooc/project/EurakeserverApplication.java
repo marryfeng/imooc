@@ -1,0 +1,14 @@
+package com.imooc.project;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
+
+@SpringBootApplication
+@EnableEurekaServer
+public class EurakeserverApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(EurakeserverApplication.class, args);
+	}
+}

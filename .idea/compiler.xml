@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="eurakeserver" />
+        <module name="imooc" />
+        <module name="imoocservice01" />
+        <module name="imoocservice02" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="eurakeserver" target="1.8" />
+      <module name="imooc" target="1.5" />
+      <module name="imoocservice01" target="1.8" />
+      <module name="imoocservice02" target="1.8" />
+      <module name="service01" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
