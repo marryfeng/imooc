@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Api(value = "imooc_user的controller层",tags ={"用户登录与密码重置功能实现"})
 @RestController
-public class UserController {
+public class OldUserController {
     @Autowired
     private UserService userService;
     @Autowired
@@ -156,8 +156,6 @@ public class UserController {
                 model.put("status","1");
                 model.put("msg","问题回答错误，重置密码失败");
             }
-
-
         }
         return model;
     }
