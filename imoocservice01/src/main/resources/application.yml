@@ -5,10 +5,18 @@ spring:
   application:
     name: springboot-service01
   datasource:
-    url: jdbc:mysql://localhost:3306/student
+    url: jdbc:mysql://localhost:3306/imooc_project
     driver-class-name: com.mysql.jdbc.Driver
     username: root
     password: root
+  mail:
+    host: smtp.163.com
+    username: marryfeng9998@163.com
+    password: marryfeng9998
+    port: 25
+    protocol: smtp
+    default-encoding: UTF-8
+
 #mapper的地方
 mybatis:
   mapper-locations: classpath:mapper/*.xml
@@ -18,3 +26,4 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:5555/eureka/
+
