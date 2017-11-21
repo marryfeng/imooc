@@ -7,9 +7,9 @@ import com.imooc.project.common.ServerResponse;
  */
 public interface CategoryService {
 
-    ServerResponse getCategory(int categoryId);
-    ServerResponse<String> addCategory(int parentId,String categoryName);
-    ServerResponse<String> updateCategoryName(int categoryId,String categoryName);
-    ServerResponse getDeepCategory(int categoryId);
+    ServerResponse getCategory(Integer categoryId);
+    ServerResponse<String> addCategory(Integer parentId,String categoryName);
+    ServerResponse<String> updateCategoryName(Integer categoryId,String categoryName);
+    ServerResponse getDeepCategory(Integer categoryId);
 
 }
