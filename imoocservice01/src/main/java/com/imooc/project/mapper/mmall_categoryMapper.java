@@ -19,7 +19,10 @@ public interface mmall_categoryMapper {
 
     int updateByPrimaryKey(mmall_category record);
 
-    List<mmall_category> selectCategoryByParentId(int parentId);
+    //注意这里传递的类型：从controller传递过来的是Integer则，这个mapper中的parameterType必须是Integer
+    //若从Controller传递过来的是int，则mapper中parameterType必须是int。两者不能互用。虽然在拆箱装箱的时候可以用。
 
-    List<Integer> getDeepCategory(int categoryId);
+    List<mmall_category> selectCategoryByParentId(Integer parentId);
+
+    List<Integer> getDeepCategory(Integer categoryId);
 }
