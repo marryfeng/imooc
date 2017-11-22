@@ -18,7 +18,7 @@ import javax.servlet.http.HttpSession;
 /**
  * Created by Administrator on 2017/11/18.
  */
-@Api(value = "商品的分类Controller")
+@Api(value = "imoocProject商品的分类Controller",tags = {"imoocProject商品的分类Controller"})
 @RestController
 @RequestMapping("/manage/category/")
 public class CategoryController {

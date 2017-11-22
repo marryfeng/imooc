@@ -69,7 +69,7 @@ public class CategoryServiceImpl implements CategoryService {
        return ServerResponse.createBySuccess(list);
     }
     //递归代码的实现
-    private Set<mmall_category> findChildrenCategory(Set<mmall_category> categorySet,Integer categoryId){
+    public Set<mmall_category> findChildrenCategory(Set<mmall_category> categorySet,Integer categoryId){
       mmall_category category=mmall_categoryMapper.selectByPrimaryKey(categoryId);
       if (category!=null){
           categorySet.add(category);
@@ -82,4 +82,5 @@ public class CategoryServiceImpl implements CategoryService {
         }
         return categorySet;
     }
+
 }

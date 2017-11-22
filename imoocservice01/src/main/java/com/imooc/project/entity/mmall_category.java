@@ -72,4 +72,21 @@ public class mmall_category {
     public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
+//增加重写的hashcode和equals方法
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        mmall_category category = (mmall_category) o;
+
+        return id != null ? id.equals(category.id) : category.id == null;
+    }
+
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : 0;
+    }
 }
