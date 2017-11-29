@@ -7,8 +7,7 @@ import com.imooc.project.entity.mmall_product;
 import com.imooc.project.entity.mmall_user;
 import com.imooc.project.service.IUserService;
 import com.imooc.project.service.ProductManageService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,6 +51,49 @@ public class ProductManageController {
         }
         return ServerResponse.createByErrorMessage("用户无权限操作");
     }
+    @ApiOperation(value = "产品list")
+    @RequestMapping(value = "list.do",method = RequestMethod.GET)
+    public ServerResponse getProductList(@RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum,@RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize){
+       ServerResponse response=productManageService.getProductList(pageNum,pageSize);
+       return response;
+    }
+    //@ApiParam() 用于方法，参数，字段说明；表示对参数的添加元数据（说明或是否必填等）
+    //@RequestParam这个注解是必须要写入的参数。如果使用swagger2，若想有的参数可以为空的话，可以用它的注解：@RequestParam
+    @ApiOperation(value = "商品搜索")
+    @RequestMapping(value = "search.do",method = RequestMethod.GET)
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="productId",value="商品id",dataType="Integer", paramType = "query",example="26"),
+            @ApiImplicitParam(name="productName",value="商品名称",dataType="String", paramType = "query")}
+            )
+    //利用这个注解就可以实现参数可以不必输入
+    public ServerResponse productSearch(Integer productId, String productName, @RequestParam(value = "pageNum",defaultValue = "1") Integer pageNum, @RequestParam(value = "pageSize",defaultValue = "10") Integer pageSize){
+     return productManageService.searchProduct(productId,productName,pageNum,pageSize);
+    }
+
+    @ApiOperation(value = "商品详情")
+    @RequestMapping(value = "detail.do",method = RequestMethod.GET)
+    public ServerResponse getProductDetail(@RequestParam  Integer productId){
+        return productManageService.getProductDetail(productId);
+
+    }
+    @ApiOperation(value = "图片上传")
+    @RequestMapping(value = "upload.do",method = RequestMethod.POST)
+    public ServerResponse pictureUpload(){
+        return null;
+    }
+    @ApiOperation(value = "富文本上传图片")
+    @RequestMapping(value = "richtext_img_upload.do",method = RequestMethod.POST)
+    public ServerResponse richtextImgUpload(){
+        return null;
+    }
+
+
+
+
+
+
+
+
     }
 
 
