@@ -16,4 +16,9 @@ public  interface  ProductManageService {
 
 
     ServerResponse getProductDetail(Integer productId);
+
+    ServerResponse getPortalProductList(Integer categoryId, String keyword,String order, Integer pageNum, Integer pageSize);
+
+    ServerResponse getPortalProductDetail(Integer productId);
+
 }

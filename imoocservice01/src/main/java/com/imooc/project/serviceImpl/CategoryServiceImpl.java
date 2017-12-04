@@ -56,7 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
    //这里递归获取子节点，即当前节点下的所以子节点以及子节点的节点都要列出
     @Override
-    public ServerResponse getDeepCategory(Integer categoryId) {
+    public ServerResponse<List<Integer>> getDeepCategory(Integer categoryId) {
        Set<mmall_category> categorySet= Sets.newHashSet();//这是guava缓存的技巧
       //在这里进行初始化Set集合
        findChildrenCategory(categorySet,categoryId);
