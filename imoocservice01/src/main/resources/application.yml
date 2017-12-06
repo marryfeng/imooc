@@ -1,5 +1,5 @@
 server:
-  port: 8000
+  port: 6600
 #微服务标志
 spring:
   application:
