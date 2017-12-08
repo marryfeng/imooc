@@ -19,7 +19,25 @@
     from mmall_cart
     where id = #{id,jdbcType=INTEGER}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    <select id="selectProductExit" parameterType="map" resultMap="BaseResultMap">
+      select
+      <include refid="Base_Column_List"/>
+      from mmall_cart
+      where user_id=#{userId}
+      and product_id=#{productId}
+
+    </select>
+  <select id="selectProductByUserId" parameterType="Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List"/>
+    from mmall_cart
+    where user_id=#{userId}
+
+  </select>
+  <select id="selectCartProductCheckedStatusByUserId" parameterType="Integer" resultType="Integer">
+    select count(1) from mmall_cart where checked=0 and user_id=#{userId}
+  </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
     delete from mmall_cart
     where id = #{id,jdbcType=INTEGER}
   </delete>

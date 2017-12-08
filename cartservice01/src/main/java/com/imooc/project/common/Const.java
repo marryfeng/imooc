@@ -40,5 +40,16 @@ public class Const {
         Set<String> PRICE_ASC_DESC= Sets.newHashSet("price_desc","price_asc");
 
     }
+    //购物车商品常用属性定义
+    //向购物车中添加商品时，需要判断商品的库存量是否足够，如果库存不够，则提示库存不够
+    public interface  CartProperty{
+        int CARTCHECKED=1;
+        int UN_CHECKED=0;
+        String TT_CART="TT_CART";
+        String LIMIT_NUM_FAIL = "LIMIT_NUM_FAIL";
+        String LIMIT_NUM_SUCCESS = "LIMIT_NUM_SUCCESS";
+
+
+    }
 
 }
