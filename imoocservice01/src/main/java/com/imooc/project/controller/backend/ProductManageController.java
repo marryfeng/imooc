@@ -7,9 +7,14 @@ import com.imooc.project.entity.mmall_product;
 import com.imooc.project.entity.mmall_user;
 import com.imooc.project.service.IUserService;
 import com.imooc.project.service.ProductManageService;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
+import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpSession;
 
@@ -76,9 +81,11 @@ public class ProductManageController {
         return productManageService.getProductDetail(productId);
 
     }
+    //使用springMVC的multipartFile
     @ApiOperation(value = "图片上传")
     @RequestMapping(value = "upload.do",method = RequestMethod.POST)
-    public ServerResponse pictureUpload(){
+    public ServerResponse pictureUpload(MultipartFile file, HttpServletRequest request){
+
         return null;
     }
     @ApiOperation(value = "富文本上传图片")
