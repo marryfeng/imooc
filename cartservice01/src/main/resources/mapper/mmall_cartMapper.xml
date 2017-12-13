@@ -46,8 +46,8 @@
       quantity, checked, create_time, 
       update_time)
     values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=INTEGER}, #{productId,jdbcType=INTEGER}, 
-      #{quantity,jdbcType=INTEGER}, #{checked,jdbcType=INTEGER}, now(),
-      now())
+      #{quantity,jdbcType=INTEGER}, #{checked,jdbcType=INTEGER},now(),now()
+      )
   </insert>
   <insert id="insertSelective" parameterType="com.imooc.project.entity.mmall_cart">
     insert into mmall_cart
@@ -71,7 +71,7 @@
         create_time,
       </if>
       <if test="updateTime != null">
-        updateTime,
+        update_time,
       </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -132,4 +132,29 @@
       update_time = now()
     where id = #{id,jdbcType=INTEGER}
   </update>
+  
+  <delete id="deleteProductFromCart">
+  delete from mmall_cart where user_id=#{userId}
+  <if test="productIds!=null" >
+    and  product_id in
+     <foreach item="ids" collection="productIds" open="(" separator="," close=")">
+    #{ids}
+     </foreach>
+  </if>
+  </delete>
+
+<!--购物车中的全选，全不选，选择一个，或者不选择一个商品的sql语句 -->
+  <update id="checkOrUnchecked" parameterType="map">
+    update mmall_cart
+    set checked=#{checked},
+    update_time = now()
+    where user_id=#{userId}
+    <if test="productId!=null">
+      and product_id=#{productId}
+    </if>
+  </update>
+
+  <select id="getCartCount" parameterType="Integer">
+    select IFNULL(sum(quantity),0) from mmall_cart where user_id=#{userId}
+  </select>
 </mapper>
