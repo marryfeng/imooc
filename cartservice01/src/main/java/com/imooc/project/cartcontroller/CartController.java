@@ -1,6 +1,7 @@
 package com.imooc.project.cartcontroller;
 
 import com.imooc.project.cartservice.ICartService;
+import com.imooc.project.common.Const;
 import com.imooc.project.common.ServerResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -8,11 +9,10 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.apache.catalina.servlet4preview.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+
 
 /**
  * 购物车功能模块实现
@@ -47,6 +47,71 @@ public class CartController {
         }
     return serverResponse;
     }
+	
+	 @ApiOperation(value = "更新购物车某个产品数量")
+	 @PostMapping("update.do'")
+	 @ApiImplicitParams({
+            @ApiImplicitParam(name = "productId",value = "商品id",dataType ="Integer",paramType = "query"),
+            @ApiImplicitParam(name = "count",value = "商品数量",dataType ="Integer",paramType = "query"),
+    }
+    )
+	 public ServerResponse updateCartQuantity(Integer productId, Integer count){
+		 Integer userId=21;
+		 return iCartService.updateCartQuantity(userId,productId,count);
+	 }
+	 
+	 @ApiOperation(value = "移除购物车某个产品")
+	 @DeleteMapping("delete_product.do")
+	 @ApiImplicitParam(name = "productIds",value = "商品id集合",dataType ="Integer",paramType = "query")
+	 public ServerResponse deleteProduct(Integer[] productIds){
+		 Integer userId=21;
+		 return iCartService.deleteProductFromCart(userId,productIds);	 
+	 }
+	 
+	 //购物车List列表
+	 @ApiOperation(value = "展示购物车列表")
+	 @GetMapping("list.do")
+	 public ServerResponse deleteProduct(){
+		 Integer userId=21;
+		 return iCartService.showCartList(userId);	 
+	 }
+
+	 @ApiOperation(value = "购物车选中某个商品")
+	 @GetMapping("select.do")
+	 @ApiImplicitParam(name = "productId",value = "商品id",dataType ="Integer",paramType = "query")
+	 public ServerResponse selectProduct(Integer productId){
+	 	int userId=21;
+		 return  iCartService.selectProduct(userId,productId,Const.CartProperty.CARTCHECKED);
+	 }
+	 
+	 @ApiOperation(value = "购物车取消选中某个商品")
+	 @GetMapping("un_select.do")
+	 @ApiImplicitParam(name = "productId",value = "商品id",dataType ="Integer",paramType = "query")
+	 public ServerResponse unselectProduct(Integer productId){
+	 	Integer userId=21;
+	 	return iCartService.unSelectProduct(userId,productId,Const.CartProperty.UN_CHECKED);
+	 }
+	 @ApiOperation(value = "查询在购物车里的产品数量")
+	 @GetMapping("get_cart_product_count.do")
+	 public ServerResponse getCartProductCount(){
+		 Integer userId=21;
+		 return iCartService.getCartProductCount(userId);
+	 }
+	 
+	 @ApiOperation(value = "购物车全选")
+	 @GetMapping("select_all.do")
+	 public ServerResponse selectAllProduct(){
+		 Integer userId=21;
+		 return iCartService.selectAllProduct(userId, Const.CartProperty.CARTCHECKED);
+	 }
+	 @ApiOperation(value = "购物车取消全选")
+	 @GetMapping("un_select_all.do")
+	 public ServerResponse unselectAllProduct(){
+		 Integer userId=21;
+		 return iCartService.unselectAllProduct(userId,Const.CartProperty.UN_CHECKED);
+	 }
+	 
+	 
 
 
 
