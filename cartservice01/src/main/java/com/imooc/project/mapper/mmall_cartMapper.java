@@ -25,4 +25,9 @@ public interface mmall_cartMapper {
     List<mmall_cart> selectProductByUserId(Integer userId);
 
     int selectCartProductCheckedStatusByUserId(Integer userId);
+	int deleteProductFromCart(@Param("userId") Integer userId,@Param("productIds") Integer[] productIds);
+
+    int checkOrUnchecked(@Param("userId") Integer userId,@Param("productId") Integer productId,@Param("checked") Integer checked);
+
+    int getCartCount(Integer userId);
 }

@@ -53,7 +53,7 @@ public class CartServiceImpl implements ICartService {
             cartItem.setUserId(userId);
             cartItem.setQuantity(count);
             cartItem.setChecked(Const.CartProperty.CARTCHECKED);
-            int i = cartMapper.insertSelective(cartItem);
+            int i = cartMapper.insert(cartItem);
         } else {
             //如果购物车不为空，则已有此商品，需要更新购物车商品的数量
             int stock = product.getStock();
@@ -76,13 +76,12 @@ public class CartServiceImpl implements ICartService {
         List<CartProductVoList> list= Lists.newArrayList();
         if (!CollectionUtils.isEmpty(cartList)) {
             for (mmall_cart cartItem : cartList) {
-                //根据购物车的商品id来查询该商品的信息
-
                 //开始封装这个包装显示类
                 CartProductVoList cartProductVoList = new CartProductVoList();
                 cartProductVoList.setId(cartItem.getId());
                 cartProductVoList.setUserId(userId);
                 cartProductVoList.setProductId(cartItem.getProductId());
+                //根据购物车的商品id来查询该商品的信息
                 mmall_product productItem = productMapper.selectByPrimaryKey(cartItem.getProductId());
                 if (productItem!=null){
                     cartProductVoList.setProductMainImage(productItem.getMainImage());
@@ -112,7 +111,7 @@ public class CartServiceImpl implements ICartService {
                     cartProductVoList.setProductTotalPrice(BigDecimalUtil.mul(productItem.getPrice().doubleValue(),cartItem.getQuantity().doubleValue()));
                     cartProductVoList.setProductChecked(cartItem.getChecked());
                 }
-                //这里的总价格默认为购物车商品全部选中的状态下计算的价格
+                //注意这里的理解：购物车中的商品默认是都没有选中的，所以当有商品是选中状态时才会将价格计算到总价中。所以这里如果购物车全选，则计算的全部的价格，如果没有全选，则价格为0，如果选中一个，则只有一个的价格
                 if (cartItem.getChecked()==Const.CartProperty.CARTCHECKED){
                     cartTotalPrice=BigDecimalUtil.add(cartTotalPrice.doubleValue(),cartProductVoList.getProductTotalPrice().doubleValue());
                 }
@@ -169,7 +168,10 @@ public class CartServiceImpl implements ICartService {
         }
         return ServerResponse.createBySuccess(list);
     }
-//从cookie中读取商品列表
+
+
+
+    //从cookie中读取商品列表
     private List<CartItmCookieVo> getProductByCookie(HttpServletRequest request) {
        String cookie=CookieUtils.getCookieValue(request,"TT_CART",true);
        //因为cookie中存放的是json格式的数据，所以如果需要转换成list形式
@@ -181,4 +183,84 @@ public class CartServiceImpl implements ICartService {
             return cartcookieList;
         }
     }
+	
+	//更新购物车中商品的数量
+	public ServerResponse updateCartQuantity(Integer userId,Integer productId,Integer count){
+		if(userId==null && productId==null){
+	return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(), ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+		}
+		//查询用户的购物车中是否有该商品，如果有则更新商品数量，如果没有则提示报错
+		mmall_product product=productMapper.selectByPrimaryKey(productId);
+		if(product!=null){
+			mmall_cart cart=cartMapper.selectProductExit(userId,productId);
+		if(cart!=null){
+			//因为在下面的展示用户的购物车列表的时候会对商品的库存进行比较，重新调整数量，所以这里就直接设置它加的数量即可
+			 cart.setQuantity(count);
+			 cartMapper.updateByPrimaryKeySelective(cart);
+			 return this.list(userId);
+		}else{
+			return ServerResponse.createByErrorMessage("该用户的购物车中无此商品，无法更新商品数量");
+		}
+		}else{
+            return ServerResponse.createByErrorMessage("系统错误");
+        }
+	}
+	//删除购物车中的某个或者某些商品
+	public ServerResponse deleteProductFromCart(Integer userId,Integer[] productIds){
+		if(userId==null && productIds.length==0){
+			return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(), ResponseCode.ILLEGAL_ARGUMENT.getDesc()); 
+		}
+		List<mmall_cart> cartList=cartMapper.selectProductByUserId(userId);
+		
+		if(!CollectionUtils.isEmpty(cartList)){
+			cartMapper.deleteProductFromCart(userId,productIds);
+			return this.list(userId);
+		}else{
+			return ServerResponse.createByErrorMessage("该用户购物车为空");
+		}	
+	}
+	
+	//展示购物车列表
+	public ServerResponse showCartList(Integer userId){
+		if(userId==null){
+			return ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(), ResponseCode.ILLEGAL_ARGUMENT.getDesc()); 
+		}
+		return this.list(userId);
+	}
+
+    @Override
+    public ServerResponse<CartVo> selectProduct(Integer userId, Integer productId,Integer checked) {
+        cartMapper.checkOrUnchecked(userId,productId,checked);
+        return this.list(userId);
+    }
+
+    @Override
+    public ServerResponse unSelectProduct(Integer userId, Integer productId, Integer checked) {
+        cartMapper.checkOrUnchecked(userId,productId,checked);
+        return this.list(userId);
+    }
+
+    @Override
+    public ServerResponse selectAllProduct(Integer userId, Integer checked) {
+	    cartMapper.checkOrUnchecked(userId,null,checked);
+        return this.list(userId);
+    }
+
+    @Override
+    public ServerResponse unselectAllProduct(Integer userId, Integer checked) {
+        cartMapper.checkOrUnchecked(userId,null,checked);
+        return this.list(userId);
+    }
+
+//获取购物车中产品的数量，是指购物车中的的产品的数量总和
+    @Override
+    public ServerResponse getCartProductCount(Integer userId) {
+	    if (userId==null){
+	        return ServerResponse.createBySuccess(0);
+        }
+
+        return ServerResponse.createBySuccess(cartMapper.getCartCount(userId));
+    }
+
+
 }
