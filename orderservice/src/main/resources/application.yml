@@ -1,0 +1,38 @@
+server:
+  port: 1111
+#微服务标志
+spring:
+  application:
+    name: orderservice
+  datasource:
+    url: jdbc:mysql://localhost:3306/imooc_project
+    driver-class-name: com.mysql.jdbc.Driver
+    username: root
+    password: root
+  mail:
+    host: smtp.163.com
+    username: marryfeng9998@163.com
+    password: marryfeng9998
+    port: 25
+    protocol: smtp
+    default-encoding: UTF-8
+
+#mapper的地方
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.imooc.project.entity
+#将服务注册到注册中心
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:1234/eureka/
+pagehelper:
+  close-conn: false
+  reasonable: true
+  helper-dialect: mysql
+
+
+
+
+
+
