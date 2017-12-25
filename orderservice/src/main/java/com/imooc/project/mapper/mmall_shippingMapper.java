@@ -3,6 +3,7 @@ package com.imooc.project.mapper;
 
 import com.imooc.project.entity.mmall_shipping;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface mmall_shippingMapper {
@@ -17,4 +18,6 @@ public interface mmall_shippingMapper {
     int updateByPrimaryKeySelective(mmall_shipping record);
 
     int updateByPrimaryKey(mmall_shipping record);
+
+    mmall_shipping selectShipping(@Param(value = "shippingId") Integer shippingId,@Param(value = "userId") Integer userId);
 }

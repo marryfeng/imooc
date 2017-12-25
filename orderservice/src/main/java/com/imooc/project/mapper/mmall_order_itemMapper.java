@@ -22,4 +22,6 @@ public interface mmall_order_itemMapper {
     int updateByPrimaryKey(mmall_order_item record);
 
     List<mmall_order_item> selectItem(@Param(value = "userId") Integer userId, @Param(value = "orderNo") Long orderNo);
+
+
 }
