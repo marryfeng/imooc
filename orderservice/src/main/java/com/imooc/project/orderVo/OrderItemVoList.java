@@ -1,7 +1,5 @@
 package com.imooc.project.orderVo;
 
-import org.joda.time.DateTime;
-
 import java.math.BigDecimal;
 
 /**
@@ -15,7 +13,7 @@ public class OrderItemVoList {
     private BigDecimal currentUnitPrice;
     private Integer quantity;
     private BigDecimal totalPrice;
-    private DateTime createTime;
+    private String createTime;
 
     public Long getOrderNo() {
         return orderNo;
@@ -73,11 +71,11 @@ public class OrderItemVoList {
         this.totalPrice = totalPrice;
     }
 
-    public DateTime getCreateTime() {
+    public String getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(DateTime createTime) {
+    public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
 }

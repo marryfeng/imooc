@@ -1,6 +1,5 @@
 package com.imooc.project.orderVo;
 
-import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -16,11 +15,11 @@ public class OrderVO {
     private Integer postage;
     private Integer status;
     private String statusDesc;
-    private DateTime paymentTime;
-    private DateTime sendTime;
-    private DateTime endTime;
-    private DateTime closeTime;
-    private DateTime createTime;
+    private String paymentTime;
+    private String sendTime;
+    private String endTime;
+    private String closeTime;
+    private String createTime;
     private List<OrderItemVoList> orderItemVoList;
     private String imageHost;
     private Integer shippingId;
@@ -83,43 +82,43 @@ public class OrderVO {
         this.statusDesc = statusDesc;
     }
 
-    public DateTime getPaymentTime() {
+    public String getPaymentTime() {
         return paymentTime;
     }
 
-    public void setPaymentTime(DateTime paymentTime) {
+    public void setPaymentTime(String paymentTime) {
         this.paymentTime = paymentTime;
     }
 
-    public DateTime getSendTime() {
+    public String getSendTime() {
         return sendTime;
     }
 
-    public void setSendTime(DateTime sendTime) {
+    public void setSendTime(String sendTime) {
         this.sendTime = sendTime;
     }
 
-    public DateTime getEndTime() {
+    public String getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(DateTime endTime) {
+    public void setEndTime(String endTime) {
         this.endTime = endTime;
     }
 
-    public DateTime getCloseTime() {
+    public String getCloseTime() {
         return closeTime;
     }
 
-    public void setCloseTime(DateTime closeTime) {
+    public void setCloseTime(String closeTime) {
         this.closeTime = closeTime;
     }
 
-    public DateTime getCreateTime() {
+    public String getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(DateTime createTime) {
+    public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
 
