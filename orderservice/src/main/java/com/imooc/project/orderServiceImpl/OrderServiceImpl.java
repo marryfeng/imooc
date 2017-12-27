@@ -3,24 +3,24 @@ package com.imooc.project.orderServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
+import com.imooc.project.cartVo.CartProductVoList;
 import com.imooc.project.common.Const;
 import com.imooc.project.common.ResponseCode;
 import com.imooc.project.common.ServerResponse;
-import com.imooc.project.entity.mmall_order;
-import com.imooc.project.entity.mmall_order_item;
-import com.imooc.project.entity.mmall_shipping;
-import com.imooc.project.mapper.mmall_orderMapper;
-import com.imooc.project.mapper.mmall_order_itemMapper;
-import com.imooc.project.mapper.mmall_shippingMapper;
+import com.imooc.project.entity.*;
+import com.imooc.project.mapper.*;
 import com.imooc.project.orderService.IorderService;
 import com.imooc.project.orderVo.OrderItemVoList;
 import com.imooc.project.orderVo.OrderVO;
 import com.imooc.project.orderVo.PortalOrderItemVo;
 import com.imooc.project.orderVo.ShippingVo;
+import com.imooc.project.util.BigDecimalUtil;
 import com.imooc.project.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -34,6 +34,11 @@ public class OrderServiceImpl implements IorderService{
     private mmall_order_itemMapper orderItemMapper;
     @Autowired
     private mmall_shippingMapper shippingMapper;
+
+    @Autowired
+    private mmall_cartMapper cartMapper;
+    @Autowired
+    private mmall_productMapper productMapper;
 
     //展示订单列表
     @Override
@@ -206,6 +211,85 @@ public class OrderServiceImpl implements IorderService{
             portalList.add(portalVO);
         }
         return ServerResponse.createBySuccess(portalList);
+    }
+    @Override
+    public ServerResponse createOrder(Integer userId, Integer shippingId) {
+        if (userId==null && shippingId==null){
+            return  ServerResponse.createByErrorCodeMessage(ResponseCode.ILLEGAL_ARGUMENT.getCode(),ResponseCode.ILLEGAL_ARGUMENT.getDesc());
+        }
+        if (shippingId==null){
+            return ServerResponse.createByErrorMessage("请填写收货人信息");
+        }
+        //(1)从购物车中获取已勾选的商品，(从购物车勾选的商品中获取商品信息)然后计算商品的总价，然后创建订单成功，然后商品库存更新，购物车的该商品删除。封装订单信息给前台
+         List<mmall_cart> cartCheckedList=cartMapper.selectCheckedProduct(userId);
+        if (CollectionUtils.isEmpty(cartCheckedList)){
+            return ServerResponse.createByErrorMessage("商品未勾选，请选择商品");
+        }
+       Long orderNo=null;
+        CartProductVoList cartProduct=new CartProductVoList();
+        BigDecimal productTotalPrice=new BigDecimal(0);
+        OrderItemVoList orderItemVoList=new OrderItemVoList();
+        List<OrderItemVoList> list=Lists.newArrayList();
+        BigDecimal totalPrice=new BigDecimal(0);
+        Integer[] productIds=new Integer[500];
+        for (mmall_cart cartItem: cartCheckedList) {
+           Integer productId=cartItem.getProductId();
+           mmall_product product=productMapper.selectByPrimaryKey(productId);
+           Integer quantity=cartItem.getQuantity();
+           productTotalPrice=BigDecimalUtil.mul(product.getPrice().doubleValue(),quantity.doubleValue());
+           totalPrice=BigDecimalUtil.add(totalPrice.doubleValue(),productTotalPrice.doubleValue());
+           for (int i=0;i<productIds.length;i++){
+               productIds[i]=productId;
+           }
+           int i=this.deleteProduct(userId,productIds);
+            if (i==0){
+                return ServerResponse.createByErrorMessage("购物车清除商品失败");
+            }
+            //更新库存
+            Integer newStock=product.getStock()-quantity;
+            this.updateStock(userId,productId,newStock);
+          //封装展示给前台的数据
+           orderItemVoList.setProductId(productId);
+           orderItemVoList.setTotalPrice(productTotalPrice);
+           orderItemVoList.setProductName(product.getName());
+           orderItemVoList.setQuantity(quantity);
+           orderItemVoList.setCurrentUnitPrice(product.getPrice());
+           orderItemVoList.setOrderNo(orderNo);
+           orderItemVoList.setCreateTime(DateUtil.dateToStr(null));
+           list.add(orderItemVoList);
+        }
+        PortalOrderItemVo portalVO=new PortalOrderItemVo();
+        portalVO.setPortalItemList(list);
+        portalVO.setProductTotalPrice(totalPrice);
+        portalVO.setImageHost("");
+     //向数据库中插入order订单，修改库存，删除购物车的该商品信息
+        mmall_order order=new mmall_order();
+        order.setOrderNo(orderNo);
+        order.setPayment(totalPrice);
+        order.setStatus(Const.OrderStatus.NO_PAY.getCode());
+        order.setPaymentTime(null);
+        order.setEndTime(null);
+        order.setCloseTime(null);
+        order.setEndTime(null);
+        order.setUserId(userId);
+        order.setShippingId(shippingId);
+        order.setPaymentType(Const.PaymentType.PAYONLINE.getCode());
+        order.setPostage(0);
+        //这里插入可以是批量插入order列表
+        orderMapper.insert(order);
+        return ServerResponse.createBySuccess(portalVO);
+    }
+
+    private void updateStock(Integer userId, Integer productId, Integer newStock) {
+       mmall_product product=productMapper.selectByPrimaryKey(productId);
+       product.setStock(newStock);
+       productMapper.updateByPrimaryKeySelective(product);
+    }
+
+    //从购物车删除该商品信息
+    private int deleteProduct(Integer userId,Integer productIds[]) {
+       int i=cartMapper.deleteProductFromCart(userId,productIds);
+       return i;
     }
 
 }

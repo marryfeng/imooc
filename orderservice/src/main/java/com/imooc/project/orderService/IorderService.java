@@ -15,4 +15,6 @@ public interface IorderService {
     ServerResponse cancelOrder(Integer userId, Long orderNo);
 
     ServerResponse getOrderProduct(Integer userId, Long orderNo);
+
+    ServerResponse createOrder(Integer userId, Integer shippingId);
 }
