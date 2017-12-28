@@ -41,15 +41,9 @@ public class PortalOrderController {
                         @ApiImplicitParam(name = "shippingId",value = "收获id",paramType = "path",dataType = "Integer")
                 }
         )
-        public ServerResponse createOrder(Integer pageSize, Integer pageNum, Long orderNo){
-
-
-
-
-
-
-
-            return null;
+        public ServerResponse createOrder(Integer shippingId){
+            Integer userId=21;
+          return   orderService.createOrder(userId,shippingId);
         }
         @ApiOperation(value = "取消订单")
         @GetMapping("cancel.do")

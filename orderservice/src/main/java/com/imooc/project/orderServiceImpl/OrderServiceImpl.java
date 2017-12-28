@@ -3,7 +3,6 @@ package com.imooc.project.orderServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.common.collect.Lists;
-import com.imooc.project.cartVo.CartProductVoList;
 import com.imooc.project.common.Const;
 import com.imooc.project.common.ResponseCode;
 import com.imooc.project.common.ServerResponse;
@@ -22,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Administrator on 2017/12/22.
@@ -187,12 +187,19 @@ public class OrderServiceImpl implements IorderService{
         if (order==null){
             return  ServerResponse.createByErrorMessage("无此订单");
         }
-       int i=orderMapper.deleteByPrimaryKey(order.getId());
-        if (i==0){
-            return  ServerResponse.createByErrorMessage("删除失败");
+      //注意这里的错误：订单取消，不是订单的删除，是将该订单的状态更新给已取消
+        //这里对接支付宝的退款，当退款成功后，才可以取消订单
+        if (order.getStatus()!=Const.OrderStatus.NO_PAY.getCode()){
+            return  ServerResponse.createByErrorMessage("已付款，无法取消订单");
         }
-
-        return ServerResponse.createBySuccessMessage("删除成功");
+        mmall_order updateOrder=new mmall_order();
+        updateOrder.setId(order.getId());
+        updateOrder.setStatus(Const.OrderStatus.CANCELED.getCode());
+        int i=orderMapper.updateByPrimaryKeySelective(updateOrder);
+        if (i==0){
+            return  ServerResponse.createByErrorMessage("订单取消失败");
+        }
+        return  ServerResponse.createBySuccessMessage("订单取消成功");
     }
 //获取订单的商品信息，即订单明细
     @Override
@@ -222,74 +229,115 @@ public class OrderServiceImpl implements IorderService{
         }
         //(1)从购物车中获取已勾选的商品，(从购物车勾选的商品中获取商品信息)然后计算商品的总价，然后创建订单成功，然后商品库存更新，购物车的该商品删除。封装订单信息给前台
          List<mmall_cart> cartCheckedList=cartMapper.selectCheckedProduct(userId);
-        if (CollectionUtils.isEmpty(cartCheckedList)){
-            return ServerResponse.createByErrorMessage("商品未勾选，请选择商品");
+        //计算总价，这里需要查询订单的明细有哪些，封装获取订单明细的方法
+        ServerResponse response=this.getOrderItemList(userId,cartCheckedList);
+        if (!response.isSuccess()){
+            return response;
         }
-       Long orderNo=null;
-        CartProductVoList cartProduct=new CartProductVoList();
-        BigDecimal productTotalPrice=new BigDecimal(0);
-        OrderItemVoList orderItemVoList=new OrderItemVoList();
-        List<OrderItemVoList> list=Lists.newArrayList();
-        BigDecimal totalPrice=new BigDecimal(0);
-        Integer[] productIds=new Integer[500];
-        for (mmall_cart cartItem: cartCheckedList) {
-           Integer productId=cartItem.getProductId();
-           mmall_product product=productMapper.selectByPrimaryKey(productId);
-           Integer quantity=cartItem.getQuantity();
-           productTotalPrice=BigDecimalUtil.mul(product.getPrice().doubleValue(),quantity.doubleValue());
-           totalPrice=BigDecimalUtil.add(totalPrice.doubleValue(),productTotalPrice.doubleValue());
-           for (int i=0;i<productIds.length;i++){
-               productIds[i]=productId;
-           }
-           int i=this.deleteProduct(userId,productIds);
-            if (i==0){
-                return ServerResponse.createByErrorMessage("购物车清除商品失败");
-            }
-            //更新库存
-            Integer newStock=product.getStock()-quantity;
-            this.updateStock(userId,productId,newStock);
-          //封装展示给前台的数据
-           orderItemVoList.setProductId(productId);
-           orderItemVoList.setTotalPrice(productTotalPrice);
-           orderItemVoList.setProductName(product.getName());
-           orderItemVoList.setQuantity(quantity);
-           orderItemVoList.setCurrentUnitPrice(product.getPrice());
-           orderItemVoList.setOrderNo(orderNo);
-           orderItemVoList.setCreateTime(DateUtil.dateToStr(null));
-           list.add(orderItemVoList);
+        //计算总价
+        List<mmall_order_item> list=(List<mmall_order_item>)response.getData();
+        BigDecimal totalPrice=this.calculateTotalPrice(list);
+        //生成订单,这里注意订单号的生成规则：
+        mmall_order order=this.assembleOrder(userId,shippingId,totalPrice);
+        if (order==null){
+            return ServerResponse.createByErrorMessage("生成订单错误");
         }
-        PortalOrderItemVo portalVO=new PortalOrderItemVo();
-        portalVO.setPortalItemList(list);
-        portalVO.setProductTotalPrice(totalPrice);
-        portalVO.setImageHost("");
-     //向数据库中插入order订单，修改库存，删除购物车的该商品信息
+        //这里订单号生成了之后，订单明细里面还没有赋值，将订单号赋给每个订单明细
+        for (mmall_order_item orderItem: list) {
+            orderItem.setOrderNo(order.getOrderNo());
+        }
+        //关键一步：批量将订单插入：将订单明细批量插入
+        orderItemMapper.batchInsert(list);
+         //生成订单成功，减少产品的库存
+        this.updateStock(list);
+
+        //清空下购物车
+        this.deleteProduct(cartCheckedList);
+        //封装返回前台的数据，封装OrderVo，orderItemVO
+        OrderItemVoList orderItem=new OrderItemVoList();
+        //这里不写了
+         return null;
+
+    }
+//生成订单
+    private mmall_order assembleOrder(Integer userId, Integer shippingId,BigDecimal totalPrice) {
         mmall_order order=new mmall_order();
+        long orderNo=this.generateOrderNo();
         order.setOrderNo(orderNo);
-        order.setPayment(totalPrice);
         order.setStatus(Const.OrderStatus.NO_PAY.getCode());
-        order.setPaymentTime(null);
-        order.setEndTime(null);
-        order.setCloseTime(null);
-        order.setEndTime(null);
         order.setUserId(userId);
-        order.setShippingId(shippingId);
         order.setPaymentType(Const.PaymentType.PAYONLINE.getCode());
-        order.setPostage(0);
-        //这里插入可以是批量插入order列表
-        orderMapper.insert(order);
-        return ServerResponse.createBySuccess(portalVO);
+        order.setPayment(totalPrice);
+        order.setShippingId(shippingId);
+       int i=orderMapper.insert(order);
+        if (i == 0) {
+            return null;
+        }
+        return  order;
+    }
+    //生成订单号:分布式环境一般用Redis的incre命令
+    private long generateOrderNo(){
+        long currentTime=System.currentTimeMillis();
+        return currentTime+new Random().nextInt(100);
+    }
+//计算总价
+    private BigDecimal calculateTotalPrice(List<mmall_order_item> list) {
+        BigDecimal totalPrice=new BigDecimal("0");
+        if (CollectionUtils.isEmpty(list)){
+            return totalPrice;
+        }
+        for (mmall_order_item orderItem: list) {
+            totalPrice=BigDecimalUtil.add(totalPrice.doubleValue(),orderItem.getTotalPrice().doubleValue());
+        }
+        return totalPrice;
     }
 
-    private void updateStock(Integer userId, Integer productId, Integer newStock) {
-       mmall_product product=productMapper.selectByPrimaryKey(productId);
-       product.setStock(newStock);
-       productMapper.updateByPrimaryKeySelective(product);
+    //获取订单明细
+    private ServerResponse getOrderItemList(Integer userId, List<mmall_cart> cartCheckedList) {
+        if (CollectionUtils.isEmpty(cartCheckedList)){
+            return ServerResponse.createByErrorMessage("购物车为空");
+        }
+        List<mmall_order_item> list=Lists.newArrayList();
+        for (mmall_cart cartItem:cartCheckedList) {
+           mmall_product product= productMapper.selectByPrimaryKey(cartItem.getProductId());
+           //这里有两个校验，校验产品的库存和是否是在售状态
+            //判断产品是否是在售状态
+            if (Const.ProductStatus.ON_SALE.getCode()==product.getStatus()){
+                //判断产品的库存
+                if (cartItem.getQuantity()<=product.getStock()){
+                    //封装产品的明细
+                    mmall_order_item orderItem=new mmall_order_item();
+                    orderItem.setUserId(userId);
+                    orderItem.setProductId(product.getId());
+                    orderItem.setProductName(product.getName());
+                    orderItem.setCurrentUnitPrice(product.getPrice());
+                    orderItem.setProductImage(product.getMainImage());
+                    orderItem.setQuantity(cartItem.getQuantity());
+                    orderItem.setTotalPrice(BigDecimalUtil.mul(product.getPrice().doubleValue(),cartItem.getQuantity().doubleValue()));
+                    list.add(orderItem);
+                }else{
+                    return ServerResponse.createByErrorMessage("库存不足");
+                }
+            }else{
+                return  ServerResponse.createByErrorMessage("商品非在线销售状态，请重新购买！");
+            }
+        }
+        return ServerResponse.createBySuccess(list);
+    }
+
+    private void updateStock(List<mmall_order_item> list) {
+        for (mmall_order_item orderItem:list) {
+            mmall_product product=productMapper.selectByPrimaryKey(orderItem.getProductId());
+             product.setStock(product.getStock()-orderItem.getQuantity());
+             productMapper.updateByPrimaryKeySelective(product);
+        }
     }
 
     //从购物车删除该商品信息
-    private int deleteProduct(Integer userId,Integer productIds[]) {
-       int i=cartMapper.deleteProductFromCart(userId,productIds);
-       return i;
+    private void deleteProduct(List<mmall_cart> list) {
+        for (mmall_cart cart:list) {
+           cartMapper.deleteByPrimaryKey(cart.getId());
+        }
     }
 
 }
