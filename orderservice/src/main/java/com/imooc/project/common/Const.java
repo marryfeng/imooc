@@ -96,6 +96,7 @@ public class Const {
         ALIPAY(1, "支付宝");
 
         PayPlatformEnum(int code, String value) {
+
             this.code = code;
             this.value = value;
         }
@@ -109,6 +110,28 @@ public class Const {
 
         public int getCode() {
             return code;
+        }
+    }
+
+    public enum PaymentType{
+        PAYONLINE(1,"在线支付"),
+        DAOPAY(2,"货到付款")
+        ;
+
+        private Integer code;
+        private String desc;
+
+        PaymentType(Integer code,String desc){
+            this.code=code;
+            this.desc=desc;
+        }
+
+        public Integer getCode() {
+            return code;
+        }
+
+        public String getDesc() {
+            return desc;
         }
     }
 }

@@ -30,4 +30,5 @@ public interface mmall_cartMapper {
 
     int checkOrUnchecked(@Param("userId") Integer userId, @Param("productId") Integer productId, @Param("checked") Integer checked);
 
+    List<mmall_cart> selectCheckedProduct(Integer userId);
 }

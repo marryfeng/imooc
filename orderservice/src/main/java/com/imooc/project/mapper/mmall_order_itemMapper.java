@@ -24,4 +24,5 @@ public interface mmall_order_itemMapper {
     List<mmall_order_item> selectItem(@Param(value = "userId") Integer userId, @Param(value = "orderNo") Long orderNo);
 
 
+    void batchInsert(@Param(value = "list") List<mmall_order_item> list);
 }
